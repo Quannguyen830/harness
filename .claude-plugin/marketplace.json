@@ -1,0 +1,12 @@
+{
+  "name": "harness",
+  "owner": { "name": "Quannguyen830" },
+  "description": "Quan's personal harness, published as a single-plugin marketplace.",
+  "plugins": [
+    {
+      "name": "harness",
+      "source": "./",
+      "description": "Quan's personal agentic harness."
+    }
+  ]
+}
