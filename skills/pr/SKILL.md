@@ -34,5 +34,6 @@ End the body with:
 1. `git push -u origin <branch>`
 2. `gh pr create --base master --title "feat(<Tn>): <what it does>" --body-file <file>`
 3. Never merge, approve or enable auto-merge. Quan merges at Gate B.
+4. Switch back: `git checkout master` and `git pull`, so the next step never starts from this branch.
 
 Say in one line: the PR URL, and that `/next` (or `/next auto`) will pick the next independent task or stop at Gate B.

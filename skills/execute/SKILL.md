@@ -34,6 +34,8 @@ Call the Skill tool with `harness:tdd` and follow it: one acceptance criterion a
 
 Keep the change minimal: no features, refactors or options the task doesn't ask for.
 
+Make tests reviewable: write invisible or non-ASCII characters as escapes (` `, `\t`), and when a criterion lists several cases (kinds of whitespace, error codes), cover them together in at least one test. (Learned from the first live run: a reviewer could not see literal NBSPs in a test.)
+
 ## 5. Keep docs in sync (code follows docs)
 
 - If you learn the spec is wrong, stop and ask; don't silently build something else.

@@ -13,7 +13,7 @@ Arguments: `$ARGUMENTS`
 - If the arguments are empty or exactly `auto`, run: `node "${CLAUDE_PLUGIN_ROOT}/scripts/next-state.mjs"`
 - Otherwise the arguments are a new idea; run: `node "${CLAUDE_PLUGIN_ROOT}/scripts/next-state.mjs" --idea "<the arguments>"`
 
-The script prints JSON `{ step, reason, feature, task, prs, warning }`. Trust it; do not re-derive the state yourself. If it prints a `warning`, tell Quan in one line.
+The script prints JSON `{ step, reason, feature, task, prs, warning, cleanup }`. Trust it; do not re-derive the state yourself. If it prints a `warning`, tell Quan in one line. If it prints `cleanup`, do that first (e.g. leave a merged task branch), then run the step.
 
 ## 2. Run exactly that step
 
