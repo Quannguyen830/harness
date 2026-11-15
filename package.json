@@ -1,0 +1,9 @@
+{
+  "name": "harness",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "selftest": "node scripts/selftest.mjs"
+  }
+}
