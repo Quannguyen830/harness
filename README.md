@@ -16,6 +16,23 @@ claude plugin install harness@harness
 
 For development, load the working copy instead: `claude --plugin-dir D:/Driver_D/harness`.
 
+## Start a project
+
+In the project repo (empty or existing):
+
+```bash
+node <harness>/scripts/init-project.mjs --verify "npm test"
+```
+
+It creates `harness.json`, `CLAUDE.md` and `docs/` (never overwriting). Commit them, open Claude Code there and type `/next <idea>`.
+Inside a Claude session `/next` will offer to run it for you (`${CLAUDE_PLUGIN_ROOT}` is the plugin path).
+
+| Command | What happens |
+|---|---|
+| `/next <idea>` | Start a feature: grill (G1) |
+| `/next` | Run the one step that is due, then stop |
+| `/next auto` | Keep going until a gate (spec approval, PR review) or a question |
+
 ## Develop
 
 ```bash
