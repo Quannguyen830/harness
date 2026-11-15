@@ -1,0 +1,16 @@
+{
+  "description": "Harness: run the project's verify command (harness.json) before the agent stops.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/verify.mjs\"",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

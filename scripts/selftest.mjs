@@ -57,7 +57,7 @@ if (exists('hooks/hooks.json')) {
   for (const groups of Object.values(hooks?.hooks ?? {})) {
     for (const group of groups) {
       for (const h of group.hooks ?? []) {
-        const m = h.command?.match(/\$\{CLAUDE_PLUGIN_ROOT\}\/(\S+)/);
+        const m = h.command?.match(/\$\{CLAUDE_PLUGIN_ROOT\}\/([^\s"']+)/);
         if (m && !exists(m[1])) fail(`hooks/hooks.json points at missing ${m[1]}`);
       }
     }
