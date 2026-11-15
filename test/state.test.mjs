@@ -101,3 +101,24 @@ test('all tasks checked → done until fit score recorded; newest open feature i
   assert.equal(r.step, 'grill');
   assert.equal(r.feature, '002-export');
 });
+
+import { feedbackItems, lastCommitAt } from '../scripts/lib/state.mjs';
+
+test('feedbackItems merges sources, drops [harness] replies and bare approvals, sorts by time', () => {
+  const pr = {
+    reviews: [
+      { state: 'APPROVED', body: '', submittedAt: '2026-01-05', author: { login: 'q' } },
+      { state: 'CHANGES_REQUESTED', body: 'rename it', submittedAt: '2026-01-03', author: { login: 'q' } },
+    ],
+    comments: [
+      { body: '[harness] addressed', createdAt: '2026-01-04' },
+      { body: 'also docs', createdAt: '2026-01-02', author: { login: 'q' } },
+    ],
+    commits: [{ committedDate: '2026-01-01' }, { committedDate: '2026-01-02T12:00:00Z' }],
+  };
+  const inline = [{ body: 'off by one', created_at: '2026-01-06', user: { login: 'q' }, path: 'src/a.js', line: 3 }];
+  const items = feedbackItems(pr, inline);
+  assert.deepEqual(items.map((i) => i.kind), ['comment', 'review:CHANGES_REQUESTED', 'inline']);
+  assert.equal(items[2].path, 'src/a.js');
+  assert.equal(lastCommitAt(pr), '2026-01-02T12:00:00Z');
+});
