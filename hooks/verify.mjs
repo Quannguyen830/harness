@@ -64,7 +64,9 @@ export function run(input, { env = process.env } = {}) {
   }
 
   const timeout = (cfg.verifyTimeoutSec ?? 300) * 1000;
-  const r = spawnSync(cfg.verify, { cwd: root, shell: true, encoding: 'utf8', timeout, env });
+  // A parent `node --test` leaks NODE_TEST_CONTEXT, which makes a child `node --test` report to it and exit 0.
+  const { NODE_TEST_CONTEXT, ...cleanEnv } = env;
+  const r = spawnSync(cfg.verify, { cwd: root, shell: true, encoding: 'utf8', timeout, env: cleanEnv });
   const output = `${r.stdout ?? ''}${r.stderr ?? ''}`.trim();
   const tail = output.split('\n').slice(-40).join('\n');
 
