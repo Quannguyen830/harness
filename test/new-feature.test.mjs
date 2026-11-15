@@ -8,6 +8,7 @@ import { slugify, nextNumber, createFeature } from '../scripts/new-feature.mjs';
 test('slugify keeps five ascii words, strips Vietnamese marks', () => {
   assert.equal(slugify('Theo dõi thói quen hằng ngày của tôi nhé'), 'theo-doi-thoi-quen-hang');
   assert.equal(slugify('Add CSV export!'), 'add-csv-export');
+  assert.equal(slugify('a CLI that counts words in a text file'), 'cli-counts-words-text-file');
   assert.equal(slugify('!!!'), 'feature');
 });
 
@@ -19,7 +20,7 @@ test('nextNumber continues after the highest folder', () => {
 test('createFeature writes grill.md from the template', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-nf-'));
   const r = createFeature(root, 'Habit tracker\nwith streaks', { date: '2026-11-15', templateDir: path.resolve('templates') });
-  assert.equal(r.dir, '001-habit-tracker-with-streaks');
+  assert.equal(r.dir, '001-habit-tracker-streaks');
   const text = fs.readFileSync(r.grill, 'utf8');
   assert.match(text, /^# Grill: Habit tracker$/m);
   assert.match(text, /^Status: in-progress$/m);

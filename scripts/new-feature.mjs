@@ -5,11 +5,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const STOP = new Set(['a', 'an', 'the', 'that', 'which', 'to', 'of', 'for', 'in', 'on', 'with', 'and']);
+
 export function slugify(text, maxWords = 5) {
   return text
     .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd')
     .toLowerCase().replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/[\s-]+/).filter(Boolean).slice(0, maxWords).join('-') || 'feature';
+    .split(/[\s-]+/).filter(Boolean)
+    .filter((w, _, all) => !STOP.has(w) || all.every((x) => STOP.has(x)))
+    .slice(0, maxWords).join('-') || 'feature';
 }
 
 export function nextNumber(existing) {

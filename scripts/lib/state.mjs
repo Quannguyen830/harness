@@ -91,7 +91,10 @@ export function decide(facts) {
     return prs.some((p) => p.headRefName?.startsWith(prefix));
   };
 
-  const onTask = tasks.find((t) => facts.branch?.startsWith(taskBranchPrefix(current.dir, t.id)));
+  // A branch whose task is already ticked on master was merged (squash merges leave it "ahead"); ignore it.
+  const branchTask = tasks.find((t) => facts.branch?.startsWith(taskBranchPrefix(current.dir, t.id)));
+  const stale = branchTask?.done ? `You are on ${facts.branch}, whose task is already merged: run "git checkout master" and "git pull" first.` : undefined;
+  const onTask = branchTask && !branchTask.done ? branchTask : null;
   if (onTask && !inFlight(onTask)) {
     const branchTasks = parseTasks(current.spec);
     const tickedHere = branchTasks.find((t) => t.id === onTask.id)?.done;
@@ -101,16 +104,17 @@ export function decide(facts) {
     return { step: 'execute', reason: `Continue task ${onTask.id} on ${facts.branch}.`, feature: current.dir, task: onTask.id };
   }
 
+  const withStale = (r) => (stale ? { ...r, cleanup: stale } : r);
   const doneIds = new Set(tasks.filter((t) => t.done).map((t) => t.id));
   const ready = tasks.find((t) => !t.done && !inFlight(t) && t.after.every((d) => doneIds.has(d)));
   if (ready) {
-    return { step: 'execute', reason: `Task ${ready.id} is ready: ${ready.title}`, feature: current.dir, task: ready.id };
+    return withStale({ step: 'execute', reason: `Task ${ready.id} is ready: ${ready.title}`, feature: current.dir, task: ready.id });
   }
   const waiting = prs.filter((p) => tasks.some((t) => !t.done && p.headRefName?.startsWith(taskBranchPrefix(current.dir, t.id))));
   if (tasks.some((t) => !t.done)) {
-    return { step: 'gate-b', reason: 'Every remaining task waits on an open PR (or on a task that does).', feature: current.dir, prs: waiting };
+    return withStale({ step: 'gate-b', reason: 'Every remaining task waits on an open PR (or on a task that does).', feature: current.dir, prs: waiting });
   }
-  return { step: 'done', reason: 'All tasks are merged. Ask Quan for the fit score (1-5 + one sentence) and record it as "Fit score: N — ..." at the end of the spec.', feature: current.dir };
+  return withStale({ step: 'done', reason: 'All tasks are merged. Ask Quan for the fit score (1-5 + one sentence) and record it as "Fit score: N — ..." at the end of the spec.', feature: current.dir });
 }
 
 // ---------- impure side ----------
@@ -119,10 +123,17 @@ const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'ut
 const tryGit = (root, args) => { try { return git(root, args); } catch { return null; } };
 const readIf = (p) => (fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null);
 
-function defaultBranch(root) {
+/** The ref that holds merged truth: the remote default branch when there is one (fetched first), else the local one. */
+function defaultBranch(root, { fetch = true } = {}) {
+  if (fetch && tryGit(root, ['remote'])) {
+    try { execFileSync('git', ['fetch', '-q', 'origin'], { cwd: root, stdio: 'ignore', timeout: 20000 }); } catch { /* offline: use what we have */ }
+  }
   const head = tryGit(root, ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD']);
   if (head) return head;
-  return tryGit(root, ['rev-parse', '--verify', '--quiet', 'master']) ? 'master' : 'main';
+  for (const ref of ['origin/master', 'origin/main', 'master', 'main']) {
+    if (tryGit(root, ['rev-parse', '--verify', '--quiet', ref])) return ref;
+  }
+  return 'master';
 }
 
 /** Normalise a PR's reviews, conversation comments and inline comments into feedback items (harness's own replies excluded). */

@@ -122,3 +122,12 @@ test('feedbackItems merges sources, drops [harness] replies and bare approvals, 
   assert.equal(items[2].path, 'src/a.js');
   assert.equal(lastCommitAt(pr), '2026-01-02T12:00:00Z');
 });
+
+test('a squash-merged task branch is ignored and flagged for cleanup', () => {
+  const master = spec('approved', ['- [x] T1: a', '- [ ] T2: b (after: T1)']);
+  const r = decide(base({ branch: 'task/001-T1-a', branchAhead: true, features: [feature({ spec: master, specOnMaster: master })] }));
+  assert.deepEqual([r.step, r.task], ['execute', 'T2']);
+  assert.match(r.cleanup, /git checkout master/);
+  const allDone = `${spec('approved', ['- [x] T1: a'])}`;
+  assert.equal(decide(base({ branch: 'task/001-T1-a', branchAhead: true, features: [feature({ spec: allDone, specOnMaster: allDone })] })).step, 'done');
+});
