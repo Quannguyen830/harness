@@ -125,28 +125,44 @@ function defaultBranch(root) {
   return tryGit(root, ['rev-parse', '--verify', '--quiet', 'master']) ? 'master' : 'main';
 }
 
+/** Normalise a PR's reviews, conversation comments and inline comments into feedback items (harness's own replies excluded). */
+export function feedbackItems(pr, inline = []) {
+  return [
+    ...(pr.reviews ?? []).filter((r) => r.state !== 'APPROVED' || r.body)
+      .map((r) => ({ kind: `review:${r.state}`, at: r.submittedAt, author: r.author?.login, body: r.body ?? '' })),
+    ...(pr.comments ?? []).map((c) => ({ kind: 'comment', at: c.createdAt, author: c.author?.login, body: c.body ?? '' })),
+    ...inline.map((c) => ({ kind: 'inline', at: c.created_at, author: c.user?.login, body: c.body ?? '', path: c.path, line: c.line ?? c.original_line })),
+  ].filter((f) => f.at && !isHarnessComment(f.body)).sort((a, b) => (a.at < b.at ? -1 : 1));
+}
+
+export function lastCommitAt(pr) {
+  return (pr.commits ?? []).map((c) => c.committedDate).sort().at(-1) ?? null;
+}
+
+const gh = (root, args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+const PR_FIELDS = 'number,title,headRefName,url,commits,reviews,comments';
+
+function inlineComments(root, number) {
+  const nameWithOwner = gh(root, ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
+  return JSON.parse(gh(root, ['api', `repos/${nameWithOwner}/pulls/${number}/comments`]));
+}
+
 export function collectGitHub(root) {
-  const json = execFileSync('gh', ['pr', 'list', '--state', 'open', '--json', 'number,title,headRefName,commits,reviews,comments'], {
-    cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  const nameWithOwner = execFileSync('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], {
-    cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
-  return JSON.parse(json).map((p) => {
-    const inline = JSON.parse(execFileSync('gh', ['api', `repos/${nameWithOwner}/pulls/${p.number}/comments`], {
-      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-    }));
-    const feedback = [
-      ...p.reviews.filter((r) => r.state !== 'APPROVED' || r.body).map((r) => ({ at: r.submittedAt, body: r.body })),
-      ...p.comments.map((c) => ({ at: c.createdAt, body: c.body })),
-      ...inline.map((c) => ({ at: c.created_at, body: c.body })),
-    ].filter((f) => f.at && !isHarnessComment(f.body));
-    const lastCommitAt = p.commits.map((c) => c.committedDate).sort().at(-1) ?? null;
+  return JSON.parse(gh(root, ['pr', 'list', '--state', 'open', '--json', PR_FIELDS])).map((p) => {
+    const feedback = feedbackItems(p, inlineComments(root, p.number));
     return {
-      number: p.number, title: p.title, headRefName: p.headRefName, lastCommitAt,
-      feedbackAt: feedback.map((f) => f.at).sort().at(-1) ?? null,
+      number: p.number, title: p.title, headRefName: p.headRefName, url: p.url, lastCommitAt: lastCommitAt(p),
+      feedbackAt: feedback.at(-1)?.at ?? null,
     };
   });
+}
+
+/** Feedback on one PR that is newer than its last commit (i.e. not yet addressed). */
+export function fetchUnaddressed(root, number) {
+  const p = JSON.parse(gh(root, ['pr', 'view', String(number), '--json', PR_FIELDS]));
+  const since = lastCommitAt(p);
+  const items = feedbackItems(p, inlineComments(root, number)).filter((f) => !since || f.at > since);
+  return { number: p.number, title: p.title, url: p.url, branch: p.headRefName, lastCommitAt: since, items };
 }
 
 export function collectFacts(root, { idea = null, github = collectGitHub } = {}) {
