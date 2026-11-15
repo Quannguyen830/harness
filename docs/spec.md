@@ -147,6 +147,8 @@ docs/
 - Tasks live in the feature's `spec.md` as checkboxes: `- [ ] T3: <title> (covers: A2, A5) (after: T1)`.
 - The task branch ticks its own checkbox (`- [x]`), so **a task is done exactly when its PR is merged** into `master`.
 - "In progress" is not written anywhere; it is derived from open branches and PRs.
+- Feature docs (grill log, spec, approval, fit score) are committed straight to `master` as `docs:` commits. Code only reaches `master` through task branches and PRs.
+- A feature is closed when all its tasks are checked and the spec ends with `Fit score: N — <one sentence>`.
 - In autonomous mode the agent picks the next task that does not depend on an unmerged PR and branches it from the latest `master`. It never stacks branches on unmerged PRs.
 
 ### 4.6 Stop-and-ask rule
