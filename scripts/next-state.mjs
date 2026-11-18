@@ -13,5 +13,4 @@ const idea = opt('--idea');
 
 const facts = collectFacts(root, { idea: idea && idea.trim() ? idea.trim() : null });
 const result = decide(facts);
-if (facts.ghError) result.warning = `GitHub not reachable (${facts.ghError}); PR state ignored.`;
 console.log(JSON.stringify(result, null, 2));

@@ -14,7 +14,7 @@ Arguments: `$ARGUMENTS`
 - If the arguments are empty or exactly `auto`, run: `node "${CLAUDE_PLUGIN_ROOT}/scripts/next-state.mjs"`
 - Otherwise the arguments are a new idea; run: `node "${CLAUDE_PLUGIN_ROOT}/scripts/next-state.mjs" --idea "<the arguments>"`
 
-The script prints JSON `{ step, kind, reason, feature, branch, task, pr, waiting, cleanup, warning }`. Trust it; do not re-derive the state. If there is a `warning`, tell Quan in one line. If there is a `cleanup`, do it first.
+The script prints JSON `{ step, kind, reason, feature, branch, task, pr, waiting, cleanup }`. Trust it; do not re-derive the state. If there is a `cleanup`, do it first.
 
 ## 2. Go to the feature's branch, then run exactly that step
 
@@ -23,19 +23,20 @@ For any step with a `branch`: `git checkout <branch>` and `git pull` (skip the p
 | step | What you do |
 |---|---|
 | `init` | Offer to run `node "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.mjs"` here. Stop. |
+| `blocked` | Tell Quan the `reason` (GitHub could not be read). Do not guess a step or rerun in a loop. Stop. |
 | `idle` | Say no feature is open and ask for the next idea. Stop. |
 | `question` | Show the open question(s) with options and your default. Stop. |
 | `grill` | Call the Skill tool with `harness:grill` (pass the idea if there is one). |
 | `spec` | Call the Skill tool with `harness:spec` for the feature. |
 | `gate-a` | ⛔ Gate A. Give the draft PR link; approving = saying "approved" here or commenting "approved" on the PR. If Quan says "approved" in chat: set `> Status: approved` in the spec, commit `docs(<NNN>): approve spec`, push. Stop. |
 | `execute` | Call the Skill tool with `harness:execute` for the task. |
-| `pr` | Call the Skill tool with `harness:pr` for the feature. |
+| `pr` | Call the Skill tool with `harness:pr` for the feature (also when the reason says the PR conflicts with master: it rebases first). |
 | `feedback` | Call the Skill tool with `harness:feedback` for the PR. |
 | `gate-b` | ⛔ Gate B. Give the PR link; ask Quan to review, comment `Fit: N — <one sentence>`, and merge. Stop. |
 
 ## 3. Auto mode
 
-Only when the arguments are exactly `auto`: after a step finishes, go back to section 1. Keep going while `kind` is `work`; stop at the first step whose `kind` is `needs-quan` (or `init`/`idle`), or when a stop-and-ask condition hits. Never merge a PR, never skip a gate. When you stop, list everything in `waiting` too.
+Only when the arguments are exactly `auto`: after a step finishes, go back to section 1. Keep going while `kind` is `work`; stop at the first step whose `kind` is `needs-quan` (or `init`/`idle`/`blocked`), or when a stop-and-ask condition hits. Never merge a PR, never skip a gate. When you stop, list everything in `waiting` too.
 
 Without `auto`, run one step and stop.
 

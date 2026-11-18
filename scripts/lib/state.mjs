@@ -40,7 +40,7 @@ const NEEDS_QUAN = ['question', 'grill', 'gate-a', 'gate-b'];
 const RANK = [...WORK, ...NEEDS_QUAN];
 
 /**
- * feature = { dir, branch, grill, spec, pr: { number, url, isDraft, unansweredAt } | null }
+ * feature = { dir, branch, grill, spec, pr: { number, url, isDraft, conflicting, unansweredAt } | null }
  * returns { step, reason, task? }
  */
 export function featureStep(f) {
@@ -58,6 +58,7 @@ export function featureStep(f) {
   if (ready) return { step: 'execute', task: ready.id, reason: `Task ${ready.id} is ready: ${ready.title}` };
   if (tasks.some((t) => !t.done)) return { step: 'question', reason: 'Unchecked tasks remain but none is ready (dependency problem in the spec).' };
   if (pr.isDraft) return { step: 'pr', reason: 'All tasks are checked; self-review and mark the PR ready.' };
+  if (pr.conflicting) return { step: 'pr', reason: `PR #${pr.number} conflicts with master: rebase, re-verify and push before Quan merges.` };
   const fit = FIT_RE.test(f.spec) ? '' : ' Ask for the fit score ("Fit: N — ...").';
   return { step: 'gate-b', reason: `PR #${pr.number} is ready for Quan's review and merge.${fit}` };
 }
@@ -66,7 +67,8 @@ export function featureStep(f) {
  * facts = {
  *   harnessProject, idea, branch, otherDocs: [text],
  *   features: [feature] (open features only, oldest first),
- *   staleBranch: string|null (current branch is a merged/closed feature branch)
+ *   staleBranch: string|null (current branch is a merged/closed feature branch),
+ *   ghError: string|null (GitHub could not be read, so PR state is unknown)
  * }
  */
 export function decide(facts) {
@@ -77,6 +79,9 @@ export function decide(facts) {
   const withCleanup = (r) => (cleanup ? { ...r, cleanup } : r);
   if (facts.idea) return withCleanup({ step: 'grill', reason: 'New idea: start a feature on a new branch.', idea: facts.idea });
 
+  if (facts.ghError) {
+    return withCleanup({ step: 'blocked', kind: 'blocked', reason: `GitHub could not be read (${facts.ghError}). PR state is unknown, so no step is safe: check "gh auth status" and the network, then rerun /next.` });
+  }
   if ((facts.otherDocs ?? []).some((d) => QUESTION_RE.test(d))) {
     return withCleanup({ step: 'question', reason: 'A > QUESTION block in docs/product.md or docs/decisions.md is waiting for Quan.' });
   }
@@ -125,21 +130,21 @@ const git = (root, args) => execFileSync('git', args, { cwd: root, encoding: 'ut
 const tryGit = (root, args) => { try { return git(root, args); } catch { return null; } };
 const gh = (root, args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 const readIf = (p) => (fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null);
-const PR_FIELDS = 'number,title,headRefName,url,state,isDraft,reviews,comments';
+const PR_FIELDS = 'number,title,headRefName,url,state,isDraft,mergeable,reviews,comments';
 
 function inlineComments(root, number) {
   const nameWithOwner = gh(root, ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
   return JSON.parse(gh(root, ['api', `repos/${nameWithOwner}/pulls/${number}/comments`]));
 }
 
-/** All PRs from feature branches, normalised: { number, url, headRefName, state, isDraft, unansweredAt }. */
+/** All PRs from feature branches, normalised: { number, url, headRefName, state, isDraft, conflicting, unansweredAt }. */
 export function collectGitHub(root) {
   const prs = JSON.parse(gh(root, ['pr', 'list', '--state', 'all', '--limit', '200', '--json', PR_FIELDS]))
     .filter((p) => p.headRefName?.startsWith(FEATURE_BRANCH));
   return prs.map((p) => {
     const inline = p.state === 'OPEN' ? inlineComments(root, p.number) : [];
     const open = p.state === 'OPEN' ? unanswered(p, inline) : [];
-    return { number: p.number, url: p.url, title: p.title, headRefName: p.headRefName, state: p.state, isDraft: p.isDraft, unansweredAt: open.at(-1)?.at ?? null };
+    return { number: p.number, url: p.url, title: p.title, headRefName: p.headRefName, state: p.state, isDraft: p.isDraft, conflicting: p.mergeable === 'CONFLICTING', unansweredAt: open.at(-1)?.at ?? null };
   });
 }
 

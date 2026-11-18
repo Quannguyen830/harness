@@ -82,3 +82,17 @@ test('feedback helpers: harness replies close earlier comments', () => {
   assert.equal(lastHarnessReplyAt(p, inline), '2026-01-02');
   assert.deepEqual(unanswered(p, inline).map((i) => i.body), ['rename it', 'Fit: 4 — good', 'off by one']);
 });
+
+test('a ready PR that conflicts with master goes back to the pr step', () => {
+  const s = featureStep(feature({ spec: spec('approved', ['- [x] T1: a']), pr: pr({ isDraft: false, conflicting: true }) }));
+  assert.equal(s.step, 'pr');
+  assert.match(s.reason, /conflicts with master/);
+});
+
+test('decide: blocked when GitHub could not be read, instead of guessing', () => {
+  const working = feature({ spec: spec('approved', ['- [ ] T1: a']), pr: null });
+  const r = decide(base({ features: [working], ghError: 'gh: connection refused' }));
+  assert.deepEqual([r.step, r.kind], ['blocked', 'blocked']);
+  assert.match(r.reason, /connection refused/);
+  assert.equal(decide(base({ idea: 'x', ghError: 'down' })).step, 'grill', 'a new idea still starts locally');
+});
