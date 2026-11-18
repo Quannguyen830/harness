@@ -8,4 +8,6 @@ One contract per workflow step (spec §5). Copy `templates/gear-contract.md` to 
 
 Components no gear calls; agents or Quan use them when needed.
 
-- On-demand: skills/diagnosing-bugs, skills/domain-modeling, skills/codebase-design
+- On-demand: skills/diagnosing-bugs, skills/domain-modeling, skills/codebase-design, skills/find-docs, skills/frontend-design, skills/writing-for-agents
+
+MCP servers (declared in `.mcp.json`, spec §3.2): `playwright` — browser automation for testing web UIs. Pin exact versions; never `@latest`.

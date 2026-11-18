@@ -59,3 +59,9 @@ test('fails when a SOURCES row lacks a license file', () => {
   const r = run(fixture({ ...base, 'SOURCES.md': base['SOURCES.md'] + '| skills/grill | https://x | 1.0 | MIT | none |\n' }));
   assert.match(r.stderr, /vendor-licenses/);
 });
+
+test('fails on an unpinned MCP server', () => {
+  const r = run(fixture({ ...base, '.mcp.json': '{"pw":{"command":"npx","args":["@playwright/mcp@latest"]}}' }));
+  assert.match(r.stderr, /must pin an exact version/);
+  assert.equal(run(fixture({ ...base, '.mcp.json': '{"pw":{"command":"npx","args":["@playwright/mcp@0.0.84"]}}' })).status, 0);
+});
