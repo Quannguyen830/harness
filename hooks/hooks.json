@@ -1,6 +1,13 @@
 {
-  "description": "Harness: verify before stopping (harness.json), plus safety guards for every repo.",
+  "description": "Harness: workflow rules at session start and verify before stopping (harness projects), plus safety guards for every repo.",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-rules.mjs\"" }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
