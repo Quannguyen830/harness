@@ -11,6 +11,7 @@ The source of truth is `docs/spec.md`. Read it before doing anything.
 - Ask questions as in spec §4.6: a few in chat, a long list in the doc.
 - Keep changes small: one gear per PR, branched from the latest `master`.
 - Never change `~/.claude` without Quan's item-by-item approval.
+- Quan must understand every change (spec principle 12): explain the step first and wait for him; keep `docs/walkthrough.md` in sync.
 - When editing a skill, `CLAUDE.md` or any doc an agent reads, follow `skills/writing-for-agents`.
 - Run `node scripts/selftest.mjs` before opening a PR.
 

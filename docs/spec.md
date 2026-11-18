@@ -28,6 +28,7 @@ The harness does **not** invent new agent machinery. It **curates** existing ski
 9. **One of each.** Exactly one component per job across the whole machine. If the harness has a grill skill, no other grill skill is installed.
 10. **Code follows docs.** Docs change first; code is derived from them. Docs and code of a feature travel together on one branch.
 11. **The harness is the whole package.** Every skill, command, hook, agent and MCP server Quan's projects use comes from the harness. Nothing workflow-related is installed on the machine outside it.
+12. **Quan understands every piece.** The harness is only useful if Quan can explain what each step and each file does. Work moves one small step at a time: explain the step, wait for Quan to follow it, then build. Every version updates `docs/walkthrough.md` (a guided tour in Vietnamese) together with the code; a change Quan can't explain back is not done.
 
 ## 3. Architecture
 
@@ -276,6 +277,7 @@ harness/
   AGENTS.md              # one line: see CLAUDE.md
   docs/
     spec.md              # this document
+    walkthrough.md       # guided tour for Quan (Vietnamese), updated every version
     reports/             # build and review reports
   gears/                 # contracts only: next.md, grill.md, spec.md, execute.md, pr.md, feedback.md
   # components, organised by kind (the standard Claude Code plugin layout):
@@ -422,6 +424,7 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 - Ask questions as in §4.7: a few in chat, a long list in the doc.
 - Keep changes small: one gear per PR.
 - Never change `~/.claude` without Quan's item-by-item approval.
+- Before building, explain the step in plain words and wait for Quan; after building, update `docs/walkthrough.md` (principle 12).
 
 ## 12. Decisions and open questions
 
@@ -450,6 +453,7 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 | D21 | Bring in `prototype`, `writing-for-agents`, `code-review` (Matt), `frontend-design`, `find-docs`, Playwright MCP and three safety hooks. Figma is not kept. | 2026-11-18 |
 | D22 | Matt's issue-tracker flow is wanted, but only after the basic workflow is validated on the dogfood. | 2026-11-18 |
 | D23 | Gate A approval is "approved" in chat or as a PR comment (GitHub's Approve is impossible on one's own PR). A PR comment is handled once a `[harness]` reply follows it. `/next` does all work it can before stopping for anything that needs Quan. | 2026-11-18 |
+| D24 | Principle 12: Quan understands every piece. Smaller steps, explained first; each version ships with an updated `docs/walkthrough.md`. | 2026-11-18 |
 
 Still open:
 
