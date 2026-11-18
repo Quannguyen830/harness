@@ -1,6 +1,21 @@
 {
-  "description": "Harness: run the project's verify command (harness.json) before the agent stops.",
+  "description": "Harness: verify before stopping (harness.json), plus safety guards for every repo.",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/safety/block-dangerous-commands.cjs\"" },
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/safety/case-insensitive-guard.cjs\"" }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write|Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/safety/protect-secrets.cjs\"" }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
