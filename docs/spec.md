@@ -139,14 +139,14 @@ Example: after Gate A on a spec with tasks T1–T3, `/next` builds T1 and stops;
 |---|---|---|
 | A comment on its PR has no `[harness]` reply after it | **G5 Feedback** | work |
 | Spec approved, an unchecked task is ready | **G3 Execute** that task | work |
-| All tasks checked, PR still draft | **G4 PR** | work |
+| All tasks checked, PR still draft — or ready but in conflict with `master` | **G4 PR** (rebase first) | work |
 | Grill done, no spec (or no draft PR yet) | **G2 Spec** | work |
 | A `> QUESTION` block is open in its docs | **question** — remind Quan | needs Quan |
 | Grill missing or not `Status: done` | **G1 Grill** — continue the interview | needs Quan |
 | Spec drafted, not approved | **⛔ Gate A** — point Quan to the draft PR | needs Quan |
 | PR ready for review | **⛔ Gate B** — point Quan to the PR, ask for the fit score | needs Quan |
 
-Then it picks: **work before anything that needs Quan**, and within each kind the order of the table, oldest feature first. So `/next auto` finishes every piece of work it can do alone, and only then stops with the list of everything waiting for Quan. With no open feature it asks for the next idea; outside a harness project (no `harness.json`) it offers to run `init-project`.
+Then it picks: **work before anything that needs Quan**, and within each kind the order of the table, oldest feature first. So `/next auto` finishes every piece of work it can do alone, and only then stops with the list of everything waiting for Quan. With no open feature it asks for the next idea; outside a harness project (no `harness.json`) it offers to run `init-project`. If GitHub can't be read, it stops with `blocked` instead of guessing from half the state.
 
 `/next` switches to the right feature branch itself (pulling it first) before running a step.
 
