@@ -9,7 +9,7 @@ Nên đọc theo thứ tự sau, mỗi phần khoảng 10–20 phút:
 2. **Mục 2:** đi lại từng version để thấy vì sao mọi thứ như bây giờ.
 3. **Mục 3:** tự mở sandbox và đối chiếu từng bước.
 4. **Mục 4:** đi qua repo harness, từng thư mục.
-5. **Mục 5:** v0.4 sẽ làm gì.
+5. **Mục 5:** trên máy bây giờ có gì (sau v0.4).
 
 ---
 
@@ -55,15 +55,17 @@ upstream (Matt Pocock, Spec Kit, ...) → harness (repo này, bạn kiểm soát
 
 ## 2. Đi lại từng version
 
-| | v0.1 Skeleton | v0.2 Close the loop | v0.2.1 | v0.3 Workflow v2 |
-|---|---|---|---|---|
-| Ngày | 2026-11-15 | 2026-11-15 | 2026-11-15 | 2026-11-18 |
-| PR harness | #1–#6 | #7–#11 | #12 | #13–#18 |
-| Đơn vị làm việc | — | 1 task = 1 branch = 1 PR | như v0.2 | **1 feature = 1 branch = 1 PR** |
-| Grill và spec nằm ở đâu | — | commit thẳng vào `master` | như v0.2 | trên branch của feature |
-| Gate A | — | sửa `Status: approved` trong file | như v0.2 | draft PR; "approved" trong chat hoặc comment |
-| Số feature mở cùng lúc | — | 1 | 1 | nhiều |
-| Kiểm chứng | test tự động | test + e2e trên git thật | **agent thật** trên sandbox | agent thật, **2 feature song song** |
+| | v0.1 Skeleton | v0.2 Close the loop | v0.2.1 | v0.3 Workflow v2 | v0.4 Machine cleanup |
+|---|---|---|---|---|---|
+| Ngày | 2026-11-15 | 2026-11-15 | 2026-11-15 | 2026-11-18 | 2026-11-18 |
+| PR harness | #1–#6 | #7–#11 | #12 | #13–#18 | #19–#21 |
+| Đơn vị làm việc | — | 1 task = 1 branch = 1 PR | như v0.2 | **1 feature = 1 branch = 1 PR** | như v0.3 |
+| Grill và spec nằm ở đâu | — | commit thẳng vào `master` | như v0.2 | trên branch của feature | như v0.3 |
+| Gate A | — | sửa `Status: approved` trong file | như v0.2 | draft PR; "approved" trong chat hoặc comment | như v0.3 |
+| Số feature mở cùng lúc | — | 1 | 1 | nhiều | nhiều |
+| Luật workflow của project nằm ở | — | `CLAUDE.md` của project (chép từ template) | như v0.2 | như v0.2 | **plugin**, nạp lúc mở session |
+| Harness trên máy | — | chỉ nạp tạm (`--plugin-dir`) | như v0.2 | như v0.2 | **cài thật**, là plugin duy nhất đang bật |
+| Kiểm chứng | test tự động | test + e2e trên git thật | **agent thật** trên sandbox | agent thật, **2 feature song song** | phiên mới chỉ thấy skill `harness:*` |
 
 ### v0.1: Skeleton (PR #1–#6)
 **Mục tiêu:** có khung, đi được từ ý tưởng đến spec đã duyệt và làm được một task.
@@ -95,7 +97,16 @@ upstream (Matt Pocock, Spec Kit, ...) → harness (repo này, bạn kiểm soát
 - **#17:** sửa hai lỗi tìm thấy khi chạy thật. Khi không đọc được GitHub, `/next` giờ dừng lại (`blocked`) thay vì đoán. PR bị conflict với `master` thì quay về G4 để rebase.
 - **#18:** báo cáo, benchmark, tag `v0.3.0`.
 
-> ⚠️ **Dễ nhầm:** số version của **spec** khác số version của **harness**. Harness v0.3 đi với spec v0.4. Mục 5 đề xuất từ v0.4 trở đi dùng chung một số.
+Sau đó bạn tự chạy `/next`. Agent rebase PR #4 lên `master`, bạn cho Fit 4 rồi merge. Vậy là cả hai feature song song đều đã vào `master`.
+
+### v0.4: Dọn máy (PR #19–#21)
+**Mục tiêu:** một phiên Claude Code mới, ở bất kỳ repo nào, chỉ nạp harness cho mọi việc liên quan workflow.
+- **#19:** file walkthrough này và nguyên tắc 12 ("Quan hiểu từng phần").
+- **#20:** luật workflow chuyển vào plugin. Hook `hooks/session-rules.mjs` chạy lúc mở session; nếu repo có `harness.json`, nó in `templates/rules.md` vào context. `CLAUDE.md` của project giờ chỉ giữ luật riêng của project đó. Nhờ vậy, sửa luật trong harness là mọi project nhận ngay, không phải sửa từng repo (sandbox đã chuyển trong sandbox PR #5). Lý do: trong lần chạy v0.3, `CLAUDE.md` của sandbox vẫn dạy "mỗi task một branch".
+- **#21:** dùng chung một số version (spec 0.4.0 = plugin 0.4.0; selftest báo lỗi nếu hai số lệch nhau), đánh dấu xong v0.3/v0.4 trong spec, báo cáo, tag `v0.4.0`.
+- **Dọn máy**, duyệt từng mục (danh sách đầy đủ ở spec §9.1): cài plugin harness từ GitHub; gỡ 10 plugin trùng (mattpocock-skills, context7, frontend-design, playwright, 3 hook an toàn, code-review, code-simplifier, figma); chuyển 2 file của context7 vào backup; cắt `~/.claude/CLAUDE.md` còn sở thích cá nhân. **Giữ nguyên:** 4 hook đang tắt, 3 plugin đang tắt, và marketplace của hooks.
+
+> **Một số version duy nhất từ 0.4.0.** Trước đây spec có số riêng (spec v0.3 đi với code v0.2, spec v0.4 đi với code v0.3). Từ giờ đầu spec ghi `Version: 0.4.0`, trùng với `plugin.json` và git tag.
 
 ---
 
@@ -109,7 +120,8 @@ upstream (Matt Pocock, Spec Kit, ...) → harness (repo này, bạn kiểm soát
 Mở [danh sách PR (cả đã đóng)](https://github.com/Quannguyen830/harness-sandbox/pulls?q=is%3Apr).
 - **PR #1, #2:** workflow cũ v0.2, mỗi task một PR (feature 001 có 2 task nên có 2 PR).
 - **PR #3:** workflow mới, cả feature 002 trong một PR. **Đã merge.**
-- **PR #4:** feature 003, một PR. **Đang mở và đang conflict** với `master` (lý do ở bước 5).
+- **PR #4:** feature 003, một PR. **Đã merge sau khi rebase** (lý do ở bước 5).
+- **PR #5:** v0.4, cắt `CLAUDE.md` của sandbox chỉ còn phần riêng của project (luật workflow giờ đến từ plugin).
 
 👉 **Tự kiểm tra:** vì sao feature 001 có 2 PR còn 002 chỉ có 1?
 
@@ -141,22 +153,22 @@ Mở [PR #4](https://github.com/Quannguyen830/harness-sandbox/pull/4) và [tab C
 - `docs/interventions.md` trên branch 003 có dòng `changed-mind`. Đổi ý là quyền của bạn nên **không tính là lỗi** của harness.
 - Lần duyệt này diễn ra **trong chat** (không phải comment), nên trên PR chỉ thấy commit `docs(003): approve spec`.
 
-### Bước 5: conflict (đang chờ thử)
+### Bước 5: conflict
 - PR #3 sửa `bin/wordcount.js`, `test/cli.test.js`, `docs/product.md`. PR #4 cũng sửa đúng ba file đó.
 - Khi #3 merge xong, #4 bị conflict. Đây là chuyện bình thường khi mở nhiều feature cùng lúc.
 - **Kỳ vọng:** `/next` thấy conflict, chọn bước `pr` (G4). Bước này rebase #4 lên `master`, gộp `--lines` với dấu phẩy, chạy test, push, rồi dừng ở Gate B.
-- **Hiện trạng:** script đã báo đúng `"step": "pr"`, lý do "PR #4 conflicts with master". Còn lần chạy agent thật thì bị crash do lỗi của CLI `claude` (segfault trong Bun) trước khi làm gì, nên **phần rebase chưa được thử**.
+- **Kết quả:** script báo đúng `"step": "pr"`, lý do "PR #4 conflicts with master". Bạn chạy `/next`, agent rebase xong (các commit của #4 có hash mới), test pass (32 pass, 1 skip), bạn cho Fit 4 và merge.
 
-Bạn tự thử được:
+Để tự chạy một feature mới trên sandbox:
 
 ```powershell
 cd D:\Driver_D\harness-sandbox
 ```
 ```powershell
-claude --plugin-dir D:/Driver_D/harness
+claude
 ```
 
-Rồi gõ `/harness:next` và xem agent làm từng bước.
+Rồi gõ `/harness:next <ý tưởng>` và xem agent làm từng bước. Từ v0.4, harness đã được cài trên máy nên không cần `--plugin-dir` nữa.
 
 ### Bước 6: xem từ góc của `/next` (3 phút)
 Trong `D:\Driver_D\harness` chạy:
@@ -180,8 +192,8 @@ Output là JSON: `step` (bước sẽ chạy), `kind` (`work` = agent tự làm,
 | 3 | `commands/next.md` | Lệnh `/next`: chỉ dẫn mà agent đọc | Đọc hết |
 | 4 | `scripts/lib/state.mjs` | Máy trạng thái: `featureStep` (một feature đang ở bước nào), `decide` (chọn giữa các feature) | Hàm `featureStep` và `decide`, ~60 dòng |
 | 5 | `skills/{grill,spec,execute,pr,feedback}/` | Mỗi gear một skill: agent làm bước đó thế nào | Đọc lướt, mỗi file 1–2 trang |
-| 6 | `templates/` | Mẫu grill, spec, PR, và `project/` (file mà `init-project` tạo cho project) | Lướt |
-| 7 | `hooks/` | `verify.mjs`: không cho dừng khi test đỏ. `safety/`: 3 hook an toàn mượn từ ngoài | Biết chúng làm gì là đủ |
+| 6 | `templates/` | Mẫu grill, spec, PR; `rules.md` (luật workflow nạp vào mọi project); `project/` (file mà `init-project` tạo cho project) | Đọc `rules.md`, phần còn lại lướt |
+| 7 | `hooks/` | `session-rules.mjs`: nạp luật lúc mở session. `verify.mjs`: không cho dừng khi test đỏ. `safety/`: 3 hook an toàn mượn từ ngoài | Biết chúng làm gì là đủ |
 | 8 | `scripts/` khác | `init-project`, `new-feature`, `check-spec`, `pr-feedback`, `collect-logs`, `upstream-diff`, `selftest` | Biết mỗi cái làm gì (dòng đầu mỗi file có ghi) |
 | 9 | Skill mượn: `tdd`, `diagnosing-bugs`, `domain-modeling`, `codebase-design`, `code-review`, `prototype`, `writing-for-agents`, `frontend-design`, `find-docs` | Dùng theo nhu cầu, nguồn ghi trong `SOURCES.md` | Biết tên và lúc nào dùng |
 | 10 | `SOURCES.md`, `vendor-licenses/` | Mỗi thứ mượn: lấy từ đâu, bản nào, license gì, đã sửa gì | Lướt |
@@ -191,16 +203,20 @@ Output là JSON: `step` (bước sẽ chạy), `kind` (`work` = agent tự làm,
 
 ---
 
-## 5. Chuẩn bị v0.4
+## 5. Trên máy bây giờ (sau v0.4)
 
-Đề xuất: **chia v0.4 thành từng bước nhỏ, mỗi bước bạn hiểu và duyệt rồi mới làm bước sau.**
+| Ở đâu | Có gì |
+|---|---|
+| Plugin đang bật | Chỉ `harness@harness`, cài từ GitHub |
+| Plugin đang tắt (giữ lại theo ý bạn) | `auto-stage`, `git-safety`, `protect-tests`, `config-guard`, `superpowers`, `feature-dev`, `github`. Plugin đang tắt không nạp gì, nên không ảnh hưởng workflow |
+| `~/.claude/CLAUDE.md` | 6 dòng sở thích cá nhân. Bản cũ ở `~/.claude/CLAUDE.md.bak` |
+| Backup | `~/.claude/backups/harness-v0.4-2026-11-18/` |
+| Còn trùng | Lệnh có sẵn `/code-review` của Claude Code và `harness:code-review`. Lệnh có sẵn không gỡ được; harness chỉ gọi bản của mình ở G4 |
 
-| # | Việc | Vì sao | Chạm vào `~/.claude`? |
-|---|---|---|---|
-| 1 | Thử nốt conflict trên sandbox (mục 3, bước 5), tốt nhất là bạn tự gõ `/harness:next` | Bài thử duy nhất của v0.3 còn dở | Không |
-| 2 | `CLAUDE.md` của project không còn chép luật workflow; luật nằm trong plugin, project chỉ giữ phần riêng của nó | Sandbox vẫn mang luật cũ (branch theo task) vì project không nhận thay đổi của template | Không |
-| 3 | Dùng chung một số version cho spec và harness | Hiện spec v0.4 đi với harness v0.3, dễ nhầm | Không |
-| 4 | Dọn máy theo spec §9.1: gỡ plugin trùng (mattpocock-skills, context7, code-review, code-simplifier, figma, frontend-design, playwright, 3 hook an toàn, 4 hook đang tắt…); cắt `~/.claude/CLAUDE.md` còn sở thích cá nhân | Để mọi session chỉ nạp harness: mỗi việc một công cụ | **Có:** duyệt từng mục |
-| 5 | Kiểm tra: mở session mới ở một repo bất kỳ, chỉ thấy skill của harness | Tiêu chí hoàn thành của v0.4 | Không |
+**Cập nhật harness trên máy** sau mỗi lần merge:
 
-Sau v0.4: chạy habit tracker, **bạn tự điều khiển**. Đó là lần đo thật đầu tiên.
+```powershell
+claude plugin update harness@harness
+```
+
+Tiếp theo: chạy habit tracker, **bạn tự điều khiển**. Đó là lần đo thật đầu tiên.
