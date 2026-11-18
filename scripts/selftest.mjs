@@ -64,6 +64,17 @@ if (exists('hooks/hooks.json')) {
   }
 }
 
+if (exists('.mcp.json')) {
+  const mcp = checkJson('.mcp.json');
+  for (const [name, server] of Object.entries(mcp ?? {})) {
+    for (const arg of server.args ?? []) {
+      if (/@latest\b/.test(arg) || /^@?[\w./-]+$/.test(arg) && arg.startsWith('@') && !/@\d/.test(arg.slice(1))) {
+        fail(`.mcp.json server "${name}" must pin an exact version (got ${arg})`);
+      }
+    }
+  }
+}
+
 // 2. Gear contracts
 const used = new Set();
 const gearFiles = listDir('gears').filter((f) => f.endsWith('.md') && f !== 'README.md');
