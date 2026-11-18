@@ -1,7 +1,7 @@
-# Harness — Spec v0.4
+# Harness — Spec
 
-> Status: draft for Quan's review (v0.3 was approved on 2026-11-14; v0.2.1 of the code implements v0.3).
-> v0.4 folds in the decisions from the review on 2026-11-18 (D15–D22 in §12). Changes from v0.3 are mainly in §3, §4, §6, §7, §8.1, §9.
+> Version: 0.4.0 — one number for the spec and the code: this spec describes the plugin at the same version and git tag (D25). `selftest` checks that the two match.
+> History of each version, in Vietnamese for Quan: [walkthrough.md](walkthrough.md) §2.
 
 ## 1. What this is
 
@@ -260,7 +260,9 @@ No gear exists without a contract. Where each borrowed component came from is re
 | GitHub Spec Kit (MIT) | Spec template structure | In v0.2 |
 | EARS requirement syntax | Acceptance criteria format | In v0.2 |
 | Superpowers 7.0.2 (MIT) | Only the "evidence before claims" rule from `verification-before-completion` (G3). Not its TDD | In v0.2 |
-| Anthropic official plugins (Apache-2.0) | `frontend-design` skill; `find-docs` skill (docs lookup via the `ctx7` CLI); Playwright MCP server (declared) | **v0.3** |
+| Anthropic official plugins (Apache-2.0) | `frontend-design` skill | **v0.3** |
+| upstash/context7 (MIT) | `find-docs` skill (docs lookup via the `ctx7` CLI) | **v0.3** |
+| Microsoft Playwright MCP (Apache-2.0) | Playwright MCP server (declared in `.mcp.json`, not copied) | **v0.3** |
 | karanb192/claude-code-hooks (MIT) | Safety hooks `block-dangerous-commands`, `protect-secrets`, `case-insensitive-guard` | **v0.3** |
 | mattpocock-skills issue-tracker flow (`to-tickets`, `triage`, `wayfinder`) | Tasks as issues instead of spec checkboxes | **Later** — Quan likes it; adopt after the basic workflow is validated on the dogfood |
 | BMAD-METHOD (MIT) | Story-file idea for task context | Later, if the log shows missing-context pain |
@@ -456,6 +458,7 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 | D22 | Matt's issue-tracker flow is wanted, but only after the basic workflow is validated on the dogfood. | 2026-11-18 |
 | D23 | Gate A approval is "approved" in chat or as a PR comment (GitHub's Approve is impossible on one's own PR). A PR comment is handled once a `[harness]` reply follows it. `/next` does all work it can before stopping for anything that needs Quan. | 2026-11-18 |
 | D24 | Principle 12: Quan understands every piece. Smaller steps, explained first; each version ships with an updated `docs/walkthrough.md`. | 2026-11-18 |
+| D25 | One version number: the spec carries the plugin's version (`plugin.json`), bumped together at each release and tagged `vX.Y.Z`. The old separate spec numbering (spec v0.3 → code v0.2, spec v0.4 → code v0.3) ends at 0.4.0. | 2026-11-18 |
 
 Still open:
 

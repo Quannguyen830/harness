@@ -75,6 +75,13 @@ if (exists('.mcp.json')) {
   }
 }
 
+// 1b. One version number (spec D25): the spec header carries the plugin version
+if (exists('docs/spec.md') && exists('.claude-plugin/plugin.json')) {
+  const specVersion = read('docs/spec.md').match(/^> Version:\s*(\d+\.\d+\.\d+)/m)?.[1];
+  const pluginVersion = JSON.parse(read('.claude-plugin/plugin.json')).version;
+  if (specVersion !== pluginVersion) fail(`docs/spec.md version (${specVersion ?? 'missing'}) must equal plugin.json version (${pluginVersion})`);
+}
+
 // 2. Gear contracts
 const used = new Set();
 const gearFiles = listDir('gears').filter((f) => f.endsWith('.md') && f !== 'README.md');
