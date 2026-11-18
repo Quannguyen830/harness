@@ -4,7 +4,7 @@ Quan's personal agentic harness for building software with Claude Code, packaged
 Spec (source of truth): [docs/spec.md](docs/spec.md).
 New here (Quan): start with the guided tour [docs/walkthrough.md](docs/walkthrough.md).
 
-Status: v0.3.0 — workflow v2 (one branch and one PR per feature, several open at once) and the harness as the whole package; run live with two features in a sandbox. See [docs/reports/2026-11-18-v0.3.md](docs/reports/2026-11-18-v0.3.md).
+Status: v0.4.0 — workflow v2, workflow rules shipped from the plugin, one version number, and the machine cleaned up so the harness is the only active plugin. See [docs/reports/2026-11-18-v0.4.md](docs/reports/2026-11-18-v0.4.md).
 
 ```
 upstream skills (mattpocock, superpowers, Spec Kit, ...)  →  harness (this repo)  →  your projects

@@ -1,7 +1,7 @@
-# Harness — Spec v0.4
+# Harness — Spec
 
-> Status: draft for Quan's review (v0.3 was approved on 2026-11-14; v0.2.1 of the code implements v0.3).
-> v0.4 folds in the decisions from the review on 2026-11-18 (D15–D22 in §12). Changes from v0.3 are mainly in §3, §4, §6, §7, §8.1, §9.
+> Version: 0.4.0 — one number for the spec and the code: this spec describes the plugin at the same version and git tag (D25). `selftest` checks that the two match.
+> History of each version, in Vietnamese for Quan: [walkthrough.md](walkthrough.md) §2.
 
 ## 1. What this is
 
@@ -260,7 +260,9 @@ No gear exists without a contract. Where each borrowed component came from is re
 | GitHub Spec Kit (MIT) | Spec template structure | In v0.2 |
 | EARS requirement syntax | Acceptance criteria format | In v0.2 |
 | Superpowers 7.0.2 (MIT) | Only the "evidence before claims" rule from `verification-before-completion` (G3). Not its TDD | In v0.2 |
-| Anthropic official plugins (Apache-2.0) | `frontend-design` skill; `find-docs` skill (docs lookup via the `ctx7` CLI); Playwright MCP server (declared) | **v0.3** |
+| Anthropic official plugins (Apache-2.0) | `frontend-design` skill | **v0.3** |
+| upstash/context7 (MIT) | `find-docs` skill (docs lookup via the `ctx7` CLI) | **v0.3** |
+| Microsoft Playwright MCP (Apache-2.0) | Playwright MCP server (declared in `.mcp.json`, not copied) | **v0.3** |
 | karanb192/claude-code-hooks (MIT) | Safety hooks `block-dangerous-commands`, `protect-secrets`, `case-insensitive-guard` | **v0.3** |
 | mattpocock-skills issue-tracker flow (`to-tickets`, `triage`, `wayfinder`) | Tasks as issues instead of spec checkboxes | **Later** — Quan likes it; adopt after the basic workflow is validated on the dogfood |
 | BMAD-METHOD (MIT) | Story-file idea for task context | Later, if the log shows missing-context pain |
@@ -374,15 +376,16 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 
 **v0.1: Skeleton** — done (2026-11-15). **v0.2: Close the loop** — done; a live agent ran one feature end to end in `harness-sandbox` (v0.2.1).
 
-**v0.3: Workflow v2 + the whole package**
+**v0.3: Workflow v2 + the whole package** — done (2026-11-18); two features ran live in `harness-sandbox`, both merged, the second after a rebase.
 - Feature branch + one feature PR (§4.1); spec on a draft PR at Gate A; several open features; `/next` picks across features (§4.2); fit score at Gate B.
 - G4 becomes "self-review and mark ready" with Matt's `code-review`; G1 may use `prototype`.
 - Bring in `find-docs`, `frontend-design`, `writing-for-agents`, the three safety hooks, and the Playwright MCP server (§6).
 - Update selftest, the end-to-end test and a live smoke run in `harness-sandbox` for the new flow.
 - **Exit criteria:** in `harness-sandbox`, a live agent takes one feature through grill → spec on a draft PR → approval → `/next auto` → ready PR → a comment applied → merge with fit score, while a second feature is open.
 
-**v0.4: Machine cleanup**
-- Remove from the machine everything the harness now provides or that duplicates a built-in (list in §9.1). The global `~/.claude/CLAUDE.md` shrinks to personal preferences.
+**v0.4: Machine cleanup** — done (2026-11-18).
+- Workflow rules reach projects from the plugin at session start (§7); one version number for spec and plugin (D25).
+- Install the harness plugin on the machine; remove from the machine everything the harness now provides or that duplicates a built-in (list in §9.1). The global `~/.claude/CLAUDE.md` shrinks to personal preferences.
 - Every change to `~/.claude` is listed first and approved by Quan item by item. Nothing is changed before that review.
 - **Exit criteria:** a fresh Claude Code session in any repo loads only the harness for workflow jobs (one of each).
 
@@ -392,20 +395,24 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 
 **Later, only when the intervention log shows real pain:** Matt's issue-tracker flow · kanban board · contracts for special task types (data migration, UI, architecture decisions) · eval and guardrails · decision-first review view · subagents · memory · automatic doc/code sync checks · triggering `/next` automatically from new PR comments.
 
-### 9.1 Machine cleanup list (for v0.4, not done yet)
+### 9.1 Machine cleanup list (v0.4, approved item by item on 2026-11-18)
 
-| On the machine today | Action | Why |
+Backups of removed files: `~/.claude/backups/harness-v0.4-2026-11-18/`.
+
+| On the machine | Action | Why |
 |---|---|---|
-| `mattpocock-skills` plugin | Uninstall | The skills Quan uses are in the harness |
-| `superpowers`, `feature-dev`, `github` plugins (disabled) | Uninstall | Unused |
-| `code-review` plugin | Uninstall | Duplicates built-in `/code-review`; the harness uses Matt's spec-aware one in G4 |
-| `code-simplifier` plugin | Uninstall | Duplicates built-in `/simplify` |
-| `context7` plugin + `~/.claude/rules/context7.md` + `~/.claude/skills/find-docs` | Uninstall / delete | Three docs-lookup tools; the harness carries `find-docs` |
-| `frontend-design`, `playwright` plugins | Uninstall after the harness carries them | Now provided by the harness |
-| `figma` plugin | Uninstall | Not used |
-| 3 safety hook plugins | Uninstall after the harness carries them | Now provided by the harness |
-| `auto-stage`, `git-safety`, `protect-tests`, `config-guard` (disabled) | Uninstall | Conflict with the workflow or block work on the harness; `protect-tests` may come back if the log shows weakened tests |
-| `~/.claude/CLAUDE.md` | Cut to personal preferences | Workflow rules live in the harness |
+| `harness` plugin | **Done:** installed from GitHub (`claude plugin marketplace add Quannguyen830/harness`) | It was only loaded with `--plugin-dir` until now |
+| `mattpocock-skills` plugin | **Done:** uninstalled | The skills Quan uses are in the harness |
+| `superpowers`, `feature-dev`, `github` plugins (disabled) | **Kept, disabled** (Quan's call; disabled plugins load nothing) | Unused |
+| `code-review` plugin | **Done:** uninstalled | Duplicates built-in `/code-review`; the harness uses Matt's spec-aware one in G4 |
+| `code-simplifier` plugin | **Done:** uninstalled | Duplicates built-in `/simplify` |
+| `context7` plugin + `~/.claude/rules/context7.md` + `~/.claude/skills/find-docs` | **Done:** uninstalled; both files moved to the backup | Three docs-lookup tools; the harness carries `find-docs` |
+| `frontend-design`, `playwright` plugins | **Done:** uninstalled | Now provided by the harness |
+| `figma` plugin | **Done:** uninstalled | Not used |
+| 3 safety hook plugins | **Done:** uninstalled (the harness runs the same code) | Now provided by the harness |
+| `auto-stage`, `git-safety`, `protect-tests`, `config-guard` (disabled) | **Kept, disabled** (Quan's call) | Conflict with the workflow or block work on the harness; `protect-tests` may come back if the log shows weakened tests |
+| `claude-code-hooks` marketplace | **Kept** (the 4 disabled hooks come from it) | — |
+| `~/.claude/CLAUDE.md` | **Done:** cut to personal preferences (old copy in the backup and `CLAUDE.md.bak`) | Workflow rules live in the harness |
 
 ## 10. Non-goals (v0.x)
 
@@ -456,6 +463,7 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 | D22 | Matt's issue-tracker flow is wanted, but only after the basic workflow is validated on the dogfood. | 2026-11-18 |
 | D23 | Gate A approval is "approved" in chat or as a PR comment (GitHub's Approve is impossible on one's own PR). A PR comment is handled once a `[harness]` reply follows it. `/next` does all work it can before stopping for anything that needs Quan. | 2026-11-18 |
 | D24 | Principle 12: Quan understands every piece. Smaller steps, explained first; each version ships with an updated `docs/walkthrough.md`. | 2026-11-18 |
+| D25 | One version number: the spec carries the plugin's version (`plugin.json`), bumped together at each release and tagged `vX.Y.Z`. The old separate spec numbering (spec v0.3 → code v0.2, spec v0.4 → code v0.3) ends at 0.4.0. | 2026-11-18 |
 
 Still open:
 
