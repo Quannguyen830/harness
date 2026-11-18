@@ -58,7 +58,7 @@ upstream (Matt Pocock, Spec Kit, ...) → harness (repo này, bạn kiểm soát
 | | v0.1 Skeleton | v0.2 Close the loop | v0.2.1 | v0.3 Workflow v2 | v0.4 Machine cleanup |
 |---|---|---|---|---|---|
 | Ngày | 2026-11-15 | 2026-11-15 | 2026-11-15 | 2026-11-18 | 2026-11-18 |
-| PR harness | #1–#6 | #7–#11 | #12 | #13–#18 | #19–#21 |
+| PR harness | #1–#6 | #7–#11 | #12 | #13–#18 | #19, #20, #22 |
 | Đơn vị làm việc | — | 1 task = 1 branch = 1 PR | như v0.2 | **1 feature = 1 branch = 1 PR** | như v0.3 |
 | Grill và spec nằm ở đâu | — | commit thẳng vào `master` | như v0.2 | trên branch của feature | như v0.3 |
 | Gate A | — | sửa `Status: approved` trong file | như v0.2 | draft PR; "approved" trong chat hoặc comment | như v0.3 |
@@ -99,11 +99,11 @@ upstream (Matt Pocock, Spec Kit, ...) → harness (repo này, bạn kiểm soát
 
 Sau đó bạn tự chạy `/next`. Agent rebase PR #4 lên `master`, bạn cho Fit 4 rồi merge. Vậy là cả hai feature song song đều đã vào `master`.
 
-### v0.4: Dọn máy (PR #19–#21)
+### v0.4: Dọn máy (PR #19, #20, #22)
 **Mục tiêu:** một phiên Claude Code mới, ở bất kỳ repo nào, chỉ nạp harness cho mọi việc liên quan workflow.
 - **#19:** file walkthrough này và nguyên tắc 12 ("Quan hiểu từng phần").
 - **#20:** luật workflow chuyển vào plugin. Hook `hooks/session-rules.mjs` chạy lúc mở session; nếu repo có `harness.json`, nó in `templates/rules.md` vào context. `CLAUDE.md` của project giờ chỉ giữ luật riêng của project đó. Nhờ vậy, sửa luật trong harness là mọi project nhận ngay, không phải sửa từng repo (sandbox đã chuyển trong sandbox PR #5). Lý do: trong lần chạy v0.3, `CLAUDE.md` của sandbox vẫn dạy "mỗi task một branch".
-- **#21:** dùng chung một số version (spec 0.4.0 = plugin 0.4.0; selftest báo lỗi nếu hai số lệch nhau), đánh dấu xong v0.3/v0.4 trong spec, báo cáo, tag `v0.4.0`.
+- **#22:** dùng chung một số version (spec 0.4.0 = plugin 0.4.0; selftest báo lỗi nếu hai số lệch nhau), đánh dấu xong v0.3/v0.4 trong spec, báo cáo, tag `v0.4.0`.
 - **Dọn máy**, duyệt từng mục (danh sách đầy đủ ở spec §9.1): cài plugin harness từ GitHub; gỡ 10 plugin trùng (mattpocock-skills, context7, frontend-design, playwright, 3 hook an toàn, code-review, code-simplifier, figma); chuyển 2 file của context7 vào backup; cắt `~/.claude/CLAUDE.md` còn sở thích cá nhân. **Giữ nguyên:** 4 hook đang tắt, 3 plugin đang tắt, và marketplace của hooks.
 
 > **Một số version duy nhất từ 0.4.0.** Trước đây spec có số riêng (spec v0.3 đi với code v0.2, spec v0.4 đi với code v0.3). Từ giờ đầu spec ghi `Version: 0.4.0`, trùng với `plugin.json` và git tag.
