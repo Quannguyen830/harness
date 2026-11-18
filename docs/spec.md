@@ -297,9 +297,11 @@ harness/
 
 | In the project | What it is |
 |---|---|
-| `CLAUDE.md` | Small project rules file; points to `docs/product.md` and the open features |
+| `CLAUDE.md` | Only this project's own rules (stack, commands, style). The workflow rules are not copied here |
 | `harness.json` | Project settings the harness needs, starting with the verify command (e.g. `{ "verify": "npm test" }`) |
 | `docs/` | `product.md`, `decisions.md`, `interventions.md`, empty `features/` |
+
+**Session rules hook:** ships in the plugin. At session start in a harness project it prints `templates/rules.md` (where docs live, branch and PR rules, stop-and-ask) into Claude's context. Because the rules live in the plugin, a harness update reaches every project at once; projects created before v0.4 should cut their `CLAUDE.md` down to the project-specific part.
 
 **Stop hook (verify):** ships in the plugin. It runs the project's `verify` command from `harness.json` when code changed; in a repo without `harness.json` it does nothing. After three failures in a row it lets the agent stop and tells Quan.
 
