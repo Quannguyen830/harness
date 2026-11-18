@@ -3,7 +3,7 @@
 Quan's personal agentic harness for building software with Claude Code, packaged as a Claude Code plugin.
 Spec (source of truth): [docs/spec.md](docs/spec.md).
 
-Status: v0.2.1 — all gears built and run end to end by a live agent in a sandbox; see [docs/reports/2026-11-15-build.md](docs/reports/2026-11-15-build.md).
+Status: v0.3.0 — workflow v2 (one branch and one PR per feature, several open at once) and the harness as the whole package; run live with two features in a sandbox. See [docs/reports/2026-11-18-v0.3.md](docs/reports/2026-11-18-v0.3.md).
 
 ```
 upstream skills (mattpocock, superpowers, Spec Kit, ...)  →  harness (this repo)  →  your projects
