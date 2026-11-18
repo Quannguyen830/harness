@@ -1,8 +1,13 @@
-Task: {{task}} — {{title}} · Feature: `{{feature}}` · Spec: `docs/features/{{feature}}/spec.md`
+Feature: `{{feature}}` · Spec: `docs/features/{{feature}}/spec.md`
+
+## Tasks
+
+<!-- One line per task: T<n> — <title> — <commit sha> — covers A1, A2 -->
+- T1 — <title> — <sha> — covers A1
 
 ## Covers
 
-<!-- One line per acceptance criterion this PR meets, and how. -->
+<!-- One line per acceptance criterion, and how it is met (test name). -->
 - A1: <criterion, short> — <how it is met; test name>
 
 ## Summary
@@ -13,6 +18,12 @@ Task: {{task}} — {{title}} · Feature: `{{feature}}` · Spec: `docs/features/{
 
 <!-- Fresh output of the verify command, and before/after for behaviour (failing → passing test, CLI output, screenshot). -->
 
+## Self-review
+
+- Standards: <what was found / fixed>
+- Spec: <what was found / fixed>
+- Known judgement calls: <or "none">
+
 ## Merge danger
 
 **Door:** <one-way | two-way> · **Blast radius:** <one word>
@@ -20,6 +31,8 @@ Task: {{task}} — {{title}} · Feature: `{{feature}}` · Spec: `docs/features/{
 ## Docs in sync?
 
 - [ ] Spec still describes what this PR does (no silent deviations)
-- [ ] Task checkbox ticked in the spec
+- [ ] Every task is ticked in the spec
 - [ ] `docs/decisions.md` updated if a lasting decision was made
-- [ ] `docs/product.md` updated (if this is the feature's last task)
+- [ ] `docs/product.md` describes the system after this feature
+
+**Quan:** review, comment `Fit: N — <one sentence>` (1–5), then merge.

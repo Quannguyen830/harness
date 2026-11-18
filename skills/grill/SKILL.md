@@ -9,8 +9,8 @@ Interview Quan until you both understand the feature, and keep the record in the
 
 ## Start
 
-1. If there is a new idea and no open feature: run `node "${CLAUDE_PLUGIN_ROOT}/scripts/new-feature.mjs" "<idea>"`. It creates `docs/features/<NNN-slug>/grill.md` and prints the path.
-2. Otherwise open the current feature's `grill.md` and continue from its last round.
+1. New idea: commit or stash nothing of yours first (the tree must be clean), then run `node "${CLAUDE_PLUGIN_ROOT}/scripts/new-feature.mjs" "<idea>"`. It creates branch `feature/<NNN-slug>` from the latest `master`, writes `docs/features/<NNN-slug>/grill.md`, and prints both. Other open features are untouched.
+2. Continuing: you are on the feature's branch; open its `grill.md` and continue from the last round.
 3. Read `docs/product.md` and `docs/decisions.md` first, and `GLOSSARY.md` if it exists. Don't ask what they already answer.
 
 ## Method (from mattpocock `grilling`)
@@ -35,6 +35,8 @@ Word each question so "yes" accepts your recommended answer. Quan may answer ter
 
 Each round reshapes the tree: settled decisions push the frontier outward. A question whose answer depends on another question still open in this round belongs to a later round.
 
+When a question is about how something should look or behave and words won't settle it, call the Skill tool with `harness:prototype` and show a throwaway prototype instead of asking in the abstract. Prototypes are never committed to the feature branch.
+
 Finding _facts_ is your job, never Quan's. When a question needs a fact from the environment (files, tools, docs), look it up (or dispatch a sub-agent) instead of asking. The _decisions_ are Quan's.
 
 Cover, in roughly this order: the problem and who has it · what done looks like (observable behaviour) · scope and explicit non-goals · data and edge cases · constraints (tech, time, platform) · how it will be tested (the public seams) · how to split it into independently shippable slices.
@@ -55,7 +57,7 @@ Keep `## Decisions` current (one line per settled decision) and `## Open questio
 The grill is done when the frontier is empty, or when Quan says the idea is clear enough. Then:
 
 1. Set `Status: done` in `grill.md`.
-2. Commit it on the default branch: `docs: grill <NNN-slug>` (feature docs go straight to master, harness spec §4.5) and push.
+2. Commit it on the feature branch: `docs(<NNN>): grill` and push with `git push -u origin feature/<NNN-slug>`.
 3. Say in one line that `/next` will now write the spec.
 
 Do not write the spec or any code here.

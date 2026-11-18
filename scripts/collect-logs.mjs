@@ -36,10 +36,14 @@ export function summarize(rows) {
   return { total: rows.length, faults, errorRate: rows.length ? faults / rows.length : null, byType, byGear };
 }
 
+/** Approval and fit-score comments are part of the flow, not corrections. */
+export const isRoutine = (body) => /^\s*(approved\b|fit\s*:)/i.test(body ?? '');
+
 export function prStats(prs) {
-  const task = prs.filter((p) => p.headRefName?.startsWith('task/'));
-  const firstPass = task.filter((p) => feedbackItems(p).length === 0).length;
-  const rework = task.map((p) => (p.comments ?? []).filter((c) => isHarnessComment(c.body)).length);
+  const task = prs.filter((p) => p.headRefName?.startsWith('feature/'));
+  const corrections = (p) => feedbackItems(p).filter((f) => !isRoutine(f.body));
+  const firstPass = task.filter((p) => corrections(p).length === 0).length;
+  const rework = task.map((p) => corrections(p).length ? (p.comments ?? []).filter((c) => isHarnessComment(c.body)).length : 0);
   return {
     merged: task.length,
     firstPassRate: task.length ? firstPass / task.length : null,
@@ -71,7 +75,7 @@ export function report({ projects, harnessVersion, date }) {
   const lines = [
     `# Benchmark ${date}`, '',
     `Harness version: \`${harnessVersion}\``, '',
-    '| Project | Interventions | Harness-fault | Error rate | Task PRs merged | First-pass merge | Rework (G5 rounds/PR) | Fit scores |',
+    '| Project | Interventions | Harness-fault | Error rate | Feature PRs merged | First-pass merge | Rework (G5 rounds/PR) | Fit scores |',
     '|---|---|---|---|---|---|---|---|',
   ];
   for (const p of projects) {

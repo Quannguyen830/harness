@@ -1,9 +1,9 @@
 # Gear: feedback
-- Purpose: Make docs, tasks and code consistent with Quan's review feedback, docs first.
-- Triggered when: An open PR has a review, comment or inline comment newer than its last commit (excluding [harness] replies).
-- Input: The PR's unaddressed feedback (scripts/pr-feedback.mjs), the feature spec, the branch.
-- Output: Spec/docs updated first, then code; verify passes; pushed to the same PR; one interventions.md line per item; one [harness] reply comment.
-- Gate: Gate B (the PR goes back to Quan)
-- Stop conditions: All items addressed and pushed → Gate B; an item is ambiguous or reaches into another task's scope → stop and ask.
+- Purpose: Handle every unanswered comment on a feature PR: approval, fit score, spec changes (docs first), code changes, questions.
+- Triggered when: A comment on an open feature PR has no [harness] reply after it.
+- Input: The unanswered comments (scripts/pr-feedback.mjs), the feature spec, the branch.
+- Output: Docs first, then code; verify passes; pushed to the same branch; one interventions.md line per correction; one [harness] reply.
+- Gate: none (the PR returns to Gate A or Gate B)
+- Stop conditions: All items handled and replied to; an item is ambiguous or reaches into another feature → stop and ask.
 - Components: skills/feedback, scripts/pr-feedback.mjs
 - Delete when: Claude Code applies PR review feedback with docs-first discipline and logging on its own.

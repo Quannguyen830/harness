@@ -27,8 +27,8 @@ test('fit scores from specs', () => {
 
 test('PR stats: first-pass and rework', () => {
   const prs = [
-    { headRefName: 'task/001-T1-a', reviews: [], comments: [] },
-    { headRefName: 'task/001-T2-b', reviews: [{ state: 'CHANGES_REQUESTED', body: 'x', submittedAt: '2026-01-01' }], comments: [{ body: '[harness] done', createdAt: '2026-01-02' }] },
+    { headRefName: 'feature/001-a', reviews: [], comments: [{ body: 'approved', createdAt: '2026-01-01' }, { body: '[harness] ok', createdAt: '2026-01-01T01:00:00Z' }, { body: 'Fit: 5 — great', createdAt: '2026-01-03' }] },
+    { headRefName: 'feature/002-b', reviews: [{ state: 'CHANGES_REQUESTED', body: 'x', submittedAt: '2026-01-01' }], comments: [{ body: '[harness] done', createdAt: '2026-01-02' }] },
     { headRefName: 'feat/other', reviews: [], comments: [] },
   ];
   assert.deepEqual(prStats(prs), { merged: 2, firstPassRate: 0.5, avgRework: 0.5 });

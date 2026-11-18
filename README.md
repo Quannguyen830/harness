@@ -31,9 +31,9 @@ Inside a Claude session `/next` will offer to run it for you (`${CLAUDE_PLUGIN_R
 
 | Command | What happens |
 |---|---|
-| `/next <idea>` | Start a feature: grill (G1) |
-| `/next` | Run the one step that is due, then stop |
-| `/next auto` | Keep going until a gate (spec approval, PR review) or a question |
+| `/next <idea>` | Start a feature on its own branch `feature/<NNN-slug>`: grill (G1). Allowed while other features are open |
+| `/next` | Run the one step that is due (across all open features), then stop |
+| `/next auto` | Do every step that needs no one, then stop with the list of what waits for Quan (spec approval, PR review, questions) |
 
 ## Develop
 
