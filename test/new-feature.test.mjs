@@ -27,3 +27,16 @@ test('createFeature writes grill.md from the template', () => {
   assert.match(text, /^Started: 2026-11-15$/m);
   assert.equal(createFeature(root, 'second', { templateDir: path.resolve('templates') }).dir, '002-second');
 });
+
+import { execFileSync } from 'node:child_process';
+
+test('numbers continue across feature branches, and a branch is created', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-nfb-'));
+  const g = (...a) => execFileSync('git', a, { cwd: root, stdio: 'ignore' });
+  g('init', '-q', '-b', 'master'); g('config', 'user.email', 't@t'); g('config', 'user.name', 't');
+  fs.writeFileSync(path.join(root, 'x'), '1'); g('add', '-A'); g('commit', '-q', '-m', 'i');
+  g('branch', 'feature/004-old-idea');
+  const r = createFeature(root, 'export to CSV', { templateDir: path.resolve('templates'), branch: true });
+  assert.equal(r.dir, '005-export-csv');
+  assert.equal(execFileSync('git', ['branch', '--show-current'], { cwd: root, encoding: 'utf8' }).trim(), 'feature/005-export-csv');
+});

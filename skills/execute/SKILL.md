@@ -1,16 +1,15 @@
 ---
 name: execute
-description: Harness gear G3. Build ONE task from an approved feature spec on its own branch, test-first at the spec's seams, verified, with the task's checkbox ticked. Use when /next picks the execute step.
+description: Harness gear G3. Build ONE task from an approved feature spec as one commit on the feature branch, test-first at the spec's seams, verified, with the task's checkbox ticked. Use when /next picks the execute step.
 ---
 
 # G3 Execute
 
-Build exactly one task, as the approved spec describes it, and leave a verified branch ready for a PR.
+Build exactly one task, as the approved spec describes it, as one verified commit on the feature branch.
 
-## 1. Set up the branch
+## 1. Be on the feature branch
 
-- If you are already on this task's branch (`task/<NNN>-<Tn>-<slug>`), continue there.
-- Otherwise: `git checkout master`, `git pull`, then `git checkout -b task/<NNN>-<Tn>-<short-slug>` (NNN = feature number). Always from the latest default branch; never from another task's unmerged branch.
+`/next` has already checked out `feature/<NNN-slug>` and pulled it. Make sure the working tree is clean and the task is the next unchecked one whose dependencies are ticked. Never create a separate branch for a task.
 
 ## 2. Load the context
 
@@ -18,7 +17,7 @@ Read the whole feature spec, not just the task line: the criteria the task cover
 
 Before writing anything, state in one short list which files or modules you expect to touch and which you won't.
 
-## 3. Stop and ask when (harness spec §4.6)
+## 3. Stop and ask when (harness spec §4.7)
 
 - a requirement is ambiguous or missing from the spec;
 - the task needs a change outside its scope (other tasks' criteria, unrelated modules);
@@ -34,7 +33,7 @@ Call the Skill tool with `harness:tdd` and follow it: one acceptance criterion a
 
 Keep the change minimal: no features, refactors or options the task doesn't ask for.
 
-Make tests reviewable: write invisible or non-ASCII characters as escapes (` `, `\t`), and when a criterion lists several cases (kinds of whitespace, error codes), cover them together in at least one test. (Learned from the first live run: a reviewer could not see literal NBSPs in a test.)
+Make tests reviewable: write invisible or non-ASCII characters as escapes (`\u00a0`, `\t`), and when a criterion lists several cases (kinds of whitespace, error codes), cover them together in at least one test. (Learned from the first live run: a reviewer could not see literal NBSPs in a test.)
 
 ## 5. Keep docs in sync (code follows docs)
 
@@ -50,6 +49,7 @@ The plugin's Stop hook runs the same command whenever you try to stop with code 
 
 ## 7. Finish
 
-1. Tick the task in the spec on this branch: `- [x] Tn: ...`.
-2. Commit with a message naming the task: `feat(Tn): <what it does>` (or `fix(Tn): ...`). Make sure the working tree is clean.
-3. Say in one line which criteria are met and that `/next` will open the PR. Do not push or open the PR here; G4 does that.
+1. Tick the task in the spec: `- [x] Tn: ...`.
+2. Make **one commit** for the task, code and docs together: `feat(<NNN>/Tn): <what it does>` (or `fix(<NNN>/Tn): ...`). The working tree must be clean afterwards.
+3. Push the branch (the draft PR updates itself).
+4. Say in one line which criteria are met and what `/next` does next: the next ready task, or G4 when every task is ticked.

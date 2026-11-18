@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Harness gear G2. Turn a finished grill log into docs/features/<NNN-slug>/spec.md — problem, scope, EARS acceptance criteria, test seams, decisions and a task list — then stop at Gate A. Use when /next picks the spec step.
+description: Harness gear G2. Turn a finished grill log into docs/features/<NNN-slug>/spec.md (problem, scope, EARS acceptance criteria, test seams, decisions, task list) on the feature branch, open the draft PR, then stop at Gate A. Use when /next picks the spec step.
 ---
 
 # G2 Spec
@@ -32,5 +32,6 @@ If the grill log doesn't settle something the spec needs: up to ~3 such gaps →
 ## Check and stop at Gate A
 
 1. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/check-spec.mjs" docs/features/<NNN-slug>/spec.md` and fix every problem it reports.
-2. Keep `> Status: draft`. Commit on the default branch: `docs: spec <NNN-slug>` and push.
-3. ⛔ Gate A: give Quan a short summary in chat (in his language): the stories, the riskiest decisions, the task list with dependencies, and the test seams. Tell him approving means setting `Status: approved` or saying "approved". Stop.
+2. Keep `> Status: draft`. Commit on the feature branch: `docs(<NNN>): spec`, and push.
+3. Open the feature's **draft** PR (if it doesn't exist yet): `gh pr create --draft --base master --head feature/<NNN-slug> --title "feat(<NNN>): <feature title>" --body-file <file>`, with a body of: one paragraph on the problem, the task list, a link to the spec file on the branch, and the line `🤖 Generated with [Claude Code](https://claude.com/claude-code)`. G4 replaces the body later.
+4. ⛔ Gate A: give Quan a short summary in chat (in his language): the stories, the riskiest decisions, the task list with dependencies, the test seams, and the PR link. Tell him he can comment on any spec line in the PR, and that approving means saying "approved" here or commenting "approved" on the PR. Stop.

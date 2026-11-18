@@ -1,6 +1,6 @@
-// End-to-end walk through the deterministic layer on a real git repo:
-// init-project → /next states for every gear → verify hook on a task branch.
-// GitHub is simulated by injecting open PRs; the LLM steps are performed by the test itself.
+// End-to-end walk through the deterministic layer of workflow v2 on a real git repo:
+// one branch + one PR per feature, two features open at once, verify hook on task commits.
+// GitHub is simulated by injecting PRs; the LLM steps are performed by the test itself.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,6 +16,7 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 const write = (root, rel, text) => { fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true }); fs.writeFileSync(path.join(root, rel), text); };
 const read = (root, rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 const commitAll = (root, msg) => { git(root, 'add', '-A'); git(root, 'commit', '-q', '-m', msg); };
+const templateDir = path.resolve('templates');
 const hook = path.resolve('hooks/verify.mjs');
 const fireHook = (cwd) => {
   const r = spawnSync(process.execPath, [hook], { input: JSON.stringify({ cwd }), encoding: 'utf8' });
@@ -25,7 +26,7 @@ const fireHook = (cwd) => {
 const SPEC = `# Spec: Word count CLI
 
 > Status: draft
-> Feature: 001-word-count-cli · Grill: [grill.md](grill.md) · Created: 2026-11-15
+> Feature: 001-word-count-cli · Grill: [grill.md](grill.md) · Created: 2026-11-18
 
 ## Problem
 Quan wants to count words in a text file from the terminal.
@@ -56,95 +57,99 @@ Independent test: run it on a fixture file.
 - [ ] T2: Error on a missing file and update docs/product.md (covers: A2) (after: T1)
 `;
 
-test('full harness flow on a real repo', () => {
+test('workflow v2 on a real repo: feature branch, draft PR, two features, merge', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'harness-e2e-'));
   git(root, 'init', '-q', '-b', 'master');
   git(root, 'config', 'user.email', 'e2e@test');
   git(root, 'config', 'user.name', 'e2e');
   write(root, 'package.json', JSON.stringify({ type: 'module', scripts: { test: 'node --test' } }));
 
-  let prs = [];
-  const state = (idea = null) => decide(collectFacts(root, { idea, github: () => prs }));
+  const prs = new Map(); // headRefName → simulated PR
+  const state = (idea = null) => decide(collectFacts(root, { idea, github: () => [...prs.values()], fetch: false }));
 
   // init
   assert.equal(state().step, 'init');
-  const init = initProject(root, {});
+  initProject(root, {});
   assert.equal(JSON.parse(read(root, 'harness.json')).verify, 'npm test');
-  assert.ok(init.created.includes('CLAUDE.md'));
   commitAll(root, 'chore: init harness project');
-
-  // idle → G1 grill
   assert.equal(state().step, 'idle');
-  assert.equal(state('word count CLI').step, 'grill');
-  const f = createFeature(root, 'Word count CLI', { templateDir: path.resolve('templates') });
-  assert.equal(f.dir, '001-word-count-cli');
-  assert.equal(state().step, 'grill', 'grill in progress stays on grill');
-  assert.equal(state('another idea').step, 'question', 'a second idea is refused while a feature is open');
-  write(root, `docs/features/${f.dir}/grill.md`, read(root, `docs/features/${f.dir}/grill.md`).replace('Status: in-progress', 'Status: done'));
-  commitAll(root, `docs: grill ${f.dir}`);
 
-  // G2 spec → Gate A
+  // G1: a new idea creates feature/001-... from master
+  assert.equal(state('word count CLI').step, 'grill');
+  const f1 = createFeature(root, 'Word count CLI', { templateDir, branch: true });
+  assert.equal(f1.branch, 'feature/001-word-count-cli');
+  assert.equal(git(root, 'branch', '--show-current'), f1.branch);
+  assert.deepEqual([state().step, state().feature], ['grill', '001-word-count-cli']);
+  write(root, `docs/features/${f1.dir}/grill.md`, read(root, `docs/features/${f1.dir}/grill.md`).replace('Status: in-progress', 'Status: done'));
+  commitAll(root, 'docs(001): grill');
+
+  // G2: spec on the branch; until the draft PR exists the step stays "spec"
   assert.equal(state().step, 'spec');
-  const specPath = `docs/features/${f.dir}/spec.md`;
+  const specPath = `docs/features/${f1.dir}/spec.md`;
   write(root, specPath, SPEC);
   assert.deepEqual(checkSpec(SPEC), []);
-  commitAll(root, `docs: spec ${f.dir}`);
+  commitAll(root, 'docs(001): spec');
+  assert.match(state().reason, /no draft PR/);
+  prs.set(f1.branch, { number: 1, url: 'u/1', headRefName: f1.branch, state: 'OPEN', isDraft: true, unansweredAt: null });
   assert.equal(state().step, 'gate-a');
 
-  // a long question list blocks progress until answered
-  write(root, specPath, `${SPEC}\n> QUESTION (task T2): exit code 1 or 2?\n`);
-  assert.equal(state().step, 'question');
-  write(root, specPath, SPEC.replace('> Status: draft', '> Status: approved'));
-  commitAll(root, `docs: approve spec ${f.dir}`);
-
-  // G3 execute T1 (T2 depends on T1)
+  // a second idea while feature 1 waits at Gate A: allowed, numbered 002, branched from master
+  assert.equal(state('export to CSV').step, 'grill');
+  const f2 = createFeature(root, 'export to CSV', { templateDir, branch: true });
+  assert.equal(f2.dir, '002-export-csv');
+  assert.ok(!fs.existsSync(path.join(root, specPath)), 'feature 2 starts from master, without feature 1 docs');
+  commitAll(root, 'docs(002): start grill');
   let s = state();
-  assert.deepEqual([s.step, s.task], ['execute', 'T1']);
-  git(root, 'checkout', '-q', '-b', 'task/001-T1-count-words');
+  assert.equal(s.kind, 'needs-quan');
+  assert.deepEqual(s.waiting.map((w) => w.feature).sort(), ['001-word-count-cli', '002-export-csv'].filter((f) => f !== s.feature));
+
+  // Gate A via a PR comment: unanswered → feedback (G5) outranks everything
+  prs.get(f1.branch).unansweredAt = '2026-11-18T10:00:00Z';
+  assert.deepEqual([state().step, state().feature], ['feedback', '001-word-count-cli']);
+  git(root, 'checkout', '-q', f1.branch);
+  write(root, specPath, read(root, specPath).replace('> Status: draft', '> Status: approved'));
+  commitAll(root, 'docs(001): approve spec');
+  prs.get(f1.branch).unansweredAt = null; // the [harness] reply was posted
+
+  // G3: work beats needs-Quan; T1 then T2 as commits on the same branch
+  s = state();
+  assert.deepEqual([s.step, s.feature, s.task, s.kind], ['execute', '001-word-count-cli', 'T1', 'work']);
+  assert.ok(s.waiting.some((w) => w.feature === '002-export-csv' && w.step === 'grill'));
   write(root, 'count.js', 'export const count = (t) => t.split(/\\s+/).filter(Boolean).length;\n');
   write(root, 'count.test.js', "import { test } from 'node:test';\nimport assert from 'node:assert';\nimport { count } from './count.js';\ntest('A1', () => assert.equal(count('a b  c'), 2));\n");
-  // verify hook blocks the deliberately wrong test
   const blocked = fireHook(root);
-  assert.equal(blocked?.decision, 'block');
-  assert.match(blocked.reason, /attempt 1\/3/);
+  assert.equal(blocked?.decision, 'block', 'verify hook blocks a failing test');
   write(root, 'count.test.js', read(root, 'count.test.js').replace('), 2)', '), 3)'));
   assert.equal(fireHook(root), null, 'green tests let the agent stop');
-  assert.equal(state().step, 'execute', 'unticked task keeps executing');
   write(root, specPath, read(root, specPath).replace('- [ ] T1:', '- [x] T1:'));
-  commitAll(root, 'feat(T1): count words in a file');
-
-  // G4 pr
-  s = state();
-  assert.deepEqual([s.step, s.task], ['pr', 'T1']);
-  prs = [{ number: 1, title: 'feat(T1)', headRefName: 'task/001-T1-count-words', lastCommitAt: '2026-11-15T10:00:00Z', feedbackAt: null }];
-  git(root, 'checkout', '-q', 'master');
-
-  // T2 waits on T1 → Gate B
-  assert.equal(state().step, 'gate-b');
-
-  // G5 feedback: Quan comments after the last commit
-  prs[0].feedbackAt = '2026-11-15T11:00:00Z';
-  assert.equal(state().step, 'feedback');
-  prs[0].lastCommitAt = '2026-11-15T12:00:00Z';
-  assert.equal(state().step, 'gate-b', 'a newer commit marks feedback addressed');
-
-  // Quan merges T1 → T2 becomes ready
-  git(root, 'merge', '-q', '--no-ff', 'task/001-T1-count-words', '-m', 'Merge T1');
-  prs = [];
-  s = state();
-  assert.deepEqual([s.step, s.task], ['execute', 'T2']);
-  git(root, 'checkout', '-q', '-b', 'task/001-T2-missing-file');
+  commitAll(root, 'feat(001/T1): count words in a file');
+  assert.deepEqual([state().step, state().task], ['execute', 'T2']);
   write(root, 'docs/product.md', '# Product\n\nA CLI that counts words in a file.\n');
   write(root, specPath, read(root, specPath).replace('- [ ] T2:', '- [x] T2:'));
-  commitAll(root, 'feat(T2): error on missing file');
-  assert.equal(state().step, 'pr');
-  git(root, 'checkout', '-q', 'master');
-  git(root, 'merge', '-q', '--no-ff', 'task/001-T2-missing-file', '-m', 'Merge T2');
+  commitAll(root, 'feat(001/T2): error on missing file');
 
-  // all merged → done until the fit score is recorded → idle
-  assert.equal(state().step, 'done');
+  // G4: all ticked, draft → pr; then ready → Gate B asking for the fit score
+  assert.equal(state().step, 'pr');
+  prs.get(f1.branch).isDraft = false;
+  s = state();
+  assert.deepEqual([s.step, s.feature], ['grill', '002-export-csv'], 'needs-Quan steps: grill ranks before gate-b');
+  assert.ok(s.waiting.some((w) => w.step === 'gate-b' && /fit score/.test(w.reason)));
+
+  // Fit score as a comment → feedback records it → Quan merges
+  prs.get(f1.branch).unansweredAt = '2026-11-18T12:00:00Z';
+  assert.equal(state().step, 'feedback');
   write(root, specPath, `${read(root, specPath)}\nFit score: 4 — smooth\n`);
-  commitAll(root, `docs: close feature ${f.dir}`);
-  assert.equal(state().step, 'idle');
-  assert.equal(state('export to CSV').step, 'grill', 'next feature can start');
+  commitAll(root, 'docs(001): fit score');
+  prs.get(f1.branch).unansweredAt = null;
+  git(root, 'checkout', '-q', 'master');
+  git(root, 'merge', '-q', '--no-ff', f1.branch, '-m', 'feat(001): word count CLI (#1)');
+  prs.get(f1.branch).state = 'MERGED';
+
+  // feature 1 is gone from the open list; standing on its branch triggers a cleanup hint
+  git(root, 'checkout', '-q', f1.branch);
+  s = state();
+  assert.deepEqual([s.step, s.feature], ['grill', '002-export-csv']);
+  assert.match(s.cleanup, /already merged/);
+  assert.equal(s.waiting, undefined);
+  assert.ok(read(root, 'docs/product.md').includes('counts words'));
 });

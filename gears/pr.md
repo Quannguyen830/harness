@@ -1,9 +1,9 @@
 # Gear: pr
-- Purpose: Turn a finished task branch into one reviewable PR against master.
-- Triggered when: The current branch is a task branch with the task ticked, commits ahead of master, a clean tree, and no open PR.
-- Input: The task branch, the feature spec, fresh verify output.
-- Output: One open PR (title feat(Tn): ...) whose body links the task, its criteria, evidence, merge danger and a docs-in-sync checklist.
-- Gate: Gate B (Quan reviews and merges)
-- Stop conditions: PR opened → Gate B; verify fails → back to execute; rebase conflict outside the task's scope → stop and ask.
-- Components: skills/pr, templates/pr.md
-- Delete when: Claude Code opens PRs in this shape from a task spec on its own.
+- Purpose: Self-review the finished feature branch against its spec and make the feature PR ready for Quan.
+- Triggered when: Every task of an open feature is ticked and its PR is still a draft.
+- Input: The feature branch, the feature spec, fresh verify output.
+- Output: Self-review fixes committed; PR body filled from templates/pr.md; PR marked ready for review.
+- Gate: Gate B (Quan reviews, comments the fit score, merges)
+- Stop conditions: PR ready → Gate B; verify fails or a finding would change the spec → stop and ask; rebase conflict outside the feature's scope → stop and ask.
+- Components: skills/pr, skills/code-review, templates/pr.md
+- Delete when: Claude Code self-reviews against a spec and opens PRs in this shape on its own.

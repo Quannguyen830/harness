@@ -133,20 +133,20 @@ Quan never has to remember which gear comes next. `/next` is the dispatcher gear
 
 Example: after Gate A on a spec with tasks T1–T3, `/next` builds T1 and stops; `/next auto` builds T1, T2, T3, self-reviews, marks the PR ready, and stops at Gate B.
 
-**Several features can be open at once**, each on its own branch. `/next` (without an idea) picks the most urgent thing across all open features, in this order (first match wins; within one row, the oldest feature first):
+**Several features can be open at once**, each on its own branch. `/next` first works out each open feature's own state:
 
-| # | State the agent sees | What `/next` does |
+| State of one feature | Its step | Kind |
 |---|---|---|
-| 1 | Not a harness project (no `harness.json`) | Offer to run `init-project` |
-| 2 | A question to Quan is unanswered (in chat or as `> QUESTION` in a doc) | Stop and remind Quan |
-| 3 | A feature PR has comments newer than its last commit | **G5 Feedback** |
-| 4 | A feature's grill is missing or not `Status: done` | **G1 Grill** (continue) |
-| 5 | Grill done, no spec | **G2 Spec** |
-| 6 | Spec drafted, draft PR not approved yet | **⛔ Gate A** — stop, point Quan to the PR |
-| 7 | Spec approved, an unchecked task is ready | **G3 Execute** that task |
-| 8 | All tasks checked, PR still draft | **G4 PR** |
-| 9 | PR ready for review, no new comments | **⛔ Gate B** — stop, list the PRs waiting for Quan |
-| 10 | No open feature | Ask Quan for the next idea |
+| A comment on its PR has no `[harness]` reply after it | **G5 Feedback** | work |
+| Spec approved, an unchecked task is ready | **G3 Execute** that task | work |
+| All tasks checked, PR still draft | **G4 PR** | work |
+| Grill done, no spec (or no draft PR yet) | **G2 Spec** | work |
+| A `> QUESTION` block is open in its docs | **question** — remind Quan | needs Quan |
+| Grill missing or not `Status: done` | **G1 Grill** — continue the interview | needs Quan |
+| Spec drafted, not approved | **⛔ Gate A** — point Quan to the draft PR | needs Quan |
+| PR ready for review | **⛔ Gate B** — point Quan to the PR, ask for the fit score | needs Quan |
+
+Then it picks: **work before anything that needs Quan**, and within each kind the order of the table, oldest feature first. So `/next auto` finishes every piece of work it can do alone, and only then stops with the list of everything waiting for Quan. With no open feature it asks for the next idea; outside a harness project (no `harness.json`) it offers to run `init-project`.
 
 `/next` switches to the right feature branch itself (pulling it first) before running a step.
 
@@ -158,11 +158,12 @@ Example: after Gate A on a spec with tasks T1–T3, `/next` builds T1 and stops;
 | G2 Spec | Grill done, no spec | `grill.md`, `docs/product.md`, the codebase | `spec.md` (problem, scope, non-goals, EARS acceptance criteria, test seams, decisions, task list) committed on the branch; a **draft PR** to `master` | Spec passes `check-spec`, draft PR opened → Gate A |
 | G3 Execute | Spec approved, a task is ready | One task + spec | One commit `feat(Tn): ...` on the feature branch with code, tests, synced docs and the task's checkbox ticked; verify passes | Task done and verified, or a stop condition hits |
 | G4 PR | All tasks checked, PR still draft | The feature branch, the spec | Self-review with `code-review` (standards + spec) and fixes; PR body filled from `pr.md`; PR marked ready for review | PR ready → Gate B |
-| G5 Feedback | Any comment on the feature PR newer than its last commit | The comments | Docs first, then code; verify; pushed to the same branch; one `docs/interventions.md` line per comment; one `[harness]` reply | Docs, tasks and code consistent again |
+| G5 Feedback | A comment on the feature PR has no `[harness]` reply after it | The comments | Docs first, then code; verify; pushed to the same branch; one `docs/interventions.md` line per comment; one `[harness]` reply | Docs, tasks and code consistent again |
 
 ### 4.4 Gates
 
-- **Gate A — approve the spec.** The spec is on the draft PR, so Quan reads it on GitHub and can comment on any line; G5 applies the comments. To approve, Quan either submits a GitHub "Approve" review on the draft PR or says "approved" in chat (the agent then records `Status: approved` in the spec and pushes). Quan never has to edit the file himself.
+- **Gate A — approve the spec.** The spec is on the draft PR, so Quan reads it on GitHub and can comment on any line; G5 applies the comments. To approve, Quan says "approved" in chat or comments "approved" on the PR; the agent records `Status: approved` in the spec and pushes. (GitHub's own "Approve" button is not available: the agent works through Quan's GitHub account, so Quan is the PR's author, and authors cannot approve their own PRs.) Quan never has to edit the file himself.
+- **A comment counts as handled** once a `[harness]` reply is posted after it. G5 always ends with such a reply, so pushing task commits never hides an unanswered comment.
 - **Gate B — accept the feature.** Quan reviews the ready PR (GitHub's "changes since last review" helps), comments if needed (G5 applies), writes the fit score as a comment (`Fit: 4 — <one sentence>`), and merges. The agent records the fit score in the spec before the merge. **Merging is the only way a feature reaches `master`, and only Quan merges.**
 
 ### 4.5 Docs in a project, and keeping them in sync with code
@@ -448,6 +449,7 @@ Each run records the harness version (git tag). Greenfield runs are not reproduc
 | D20 | **The harness is the whole package** (principle 11): every workflow component and MCP server comes from it; `~/.claude` keeps only machine and personal settings (§3.2). | 2026-11-18 |
 | D21 | Bring in `prototype`, `writing-for-agents`, `code-review` (Matt), `frontend-design`, `find-docs`, Playwright MCP and three safety hooks. Figma is not kept. | 2026-11-18 |
 | D22 | Matt's issue-tracker flow is wanted, but only after the basic workflow is validated on the dogfood. | 2026-11-18 |
+| D23 | Gate A approval is "approved" in chat or as a PR comment (GitHub's Approve is impossible on one's own PR). A PR comment is handled once a `[harness]` reply follows it. `/next` does all work it can before stopping for anything that needs Quan. | 2026-11-18 |
 
 Still open:
 
