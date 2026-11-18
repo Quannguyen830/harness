@@ -1,6 +1,6 @@
 {
   "name": "harness",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Quan's personal agentic harness: one /next command drives grill -> spec -> execute -> PR -> feedback.",
   "author": { "name": "Quannguyen830" },
   "repository": "https://github.com/Quannguyen830/harness",
